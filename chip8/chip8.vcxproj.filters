@@ -15,11 +15,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Initialization.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
+    <None Include="..\..\..\..\Downloads\IBM Logo.ch8" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\..\Downloads\IBM Logo.ch8" />
+    <Text Include="CMakeLists.txt">
+      <Filter>Source Files</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Initialization.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
