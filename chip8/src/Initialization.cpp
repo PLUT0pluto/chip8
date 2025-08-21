@@ -476,106 +476,15 @@ public:
 int main() {
 	Graphics mainWindow;
 	Chip8 chip8;
+	mainWindow.initGraphics();
+	chip8.initialize();
 
-	//TERMINAL STUFF
-	std::cout << R"(
-		  Keybinds
-
-    CHIP-8       PC Keyboard
-    -------      ------------
-    1 2 3 C        1 2 3 4
-    4 5 6 D        Q W E R
-    7 8 9 E        A S D F
-    A 0 B F        Z X C V
-)" << std::endl;
-
-
-
-	std::vector<std::string> resolutions = {
-		"1024x512", "800x400", "640x320",
-		"480x240", "320x160", "256x128"
-	};
-
-	for (int i = 0; i < resolutions.size(); ++i) {
-		std::cout << "[" << i << "] " << resolutions[i] << "\n";
-	}
-
-	int choice2;
-	while (true) {
-		std::cout << "\nEnter a number to select a resolution: ";
-		std::cin >> choice2;
-
-		if (std::cin.fail()) {
-			std::cin.clear(); // clear error flag
-			std::cin.ignore(1000, '\n'); // discard invalid input
-			std::cout << "Invalid input. Please enter a number.\n";
-			continue;
-		}
-
-		if (choice2 >= 0 && choice2 < resolutions.size()) {
-			int width = 0;
-			int height = 0;
-
-			std::string res = resolutions[choice2];
-			auto xpos = res.find('x');
-
-			width = std::stoi(res.substr(0, xpos));
-			height = std::stoi(res.substr(xpos + 1));
-			mainWindow.windowH = height;
-			mainWindow.windowW = width;
-
-			std::cout << resolutions[choice2] << "\n";
-
-			break;
-		}
-	}
-
-
-	std::vector<std::string> games = {
-		"BLINKY", "CONNECT4", "INVADERS", "LANDING", "MAZE",
-		"PONG", "SPACE", "TANK", "TETRIS", "TICTACTOE", "WALL"
-	};
-
-	std::cout << "Available games:\n";
-	for (int i = 0; i < games.size(); ++i) {
-		std::cout << "[" << i << "] " << games[i] << "\n";
-	}
-
-	int choice;
-	while (true) {
-		std::cout << "\nEnter a number to select a game: ";
-		std::cin >> choice;
-
-		if (std::cin.fail()) {
-			std::cin.clear(); // clear error flag
-			std::cin.ignore(1000, '\n'); // discard invalid input
-			std::cout << "Invalid input. Please enter a number.\n";
-			continue;
-		}
-
-		if (choice >= 0 && choice < games.size()) {
-			std::cout << "Running " << games[choice] << "\n";
-			mainWindow.initGraphics();
-			chip8.initialize();
-
-			std::string file_name = games[choice];
-			// Try typical relative paths to the roms directory
-			std::string file_path = "roms/" + file_name; // project root
-			chip8.load_rom(file_path.c_str());
-			break;
-		}
-		else {
-			std::cout << "Invalid number. Please enter a number between 0 and 10.\n";
-		}
-	}
-
-	
-
-
-
-
-
-
+	chip8.load_rom("roms/TETRIS");
+	std::cout << "Keybinds\n"
+		"W move left\n"
+		"E move right\n"
+		"Q rotate\n"
+		"A down" << std::endl;
 
 	bool running = true;
 	SDL_Event event;
