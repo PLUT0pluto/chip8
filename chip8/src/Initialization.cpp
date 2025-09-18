@@ -484,7 +484,7 @@ int main() {
 		"W move left\n"
 		"E move right\n"
 		"Q rotate\n"
-		"A down" << std::endl;
+		"A soft drop" << std::endl;
 
 	bool running = true;
 	SDL_Event event;
