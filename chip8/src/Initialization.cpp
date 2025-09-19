@@ -9,8 +9,6 @@
 #include <map>
 #include <memory>
 #include <random>
-#include <vector>
-#include <string>
 
 
 class Graphics {
@@ -23,18 +21,18 @@ public:
 
 	void initGraphics() {
 
-		// Initialize SDL
+		//initialize SDL
 		if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 			std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << "\n";
 			return;
 		}
 
-		// Create a window
+		//create window
 		window = SDL_CreateWindow(
-			"CHIP-8 Emulator",           // Window title
-			windowW,                         // Width (scaled 10x)
-			windowH,                         // Height (scaled 10x)
-			SDL_WINDOW_HIGH_PIXEL_DENSITY // Flags
+			"CHIP-8 Emulator",           //title
+			windowW,                         //10x scale
+			windowH,                         //10x scale
+			SDL_WINDOW_HIGH_PIXEL_DENSITY 
 		);
 
 		if (window == nullptr) {
@@ -43,7 +41,7 @@ public:
 			return;
 		}
 
-		// Create a renderer
+		//create renderer
 		renderer = SDL_CreateRenderer(window, nullptr);
 		if (renderer == nullptr) {
 			std::cerr << "Renderer could not be created! SDL_Error: " << SDL_GetError() << "\n";
@@ -53,31 +51,31 @@ public:
 		}
 	}
 
-	void render_display(SDL_Renderer* renderer, std::array< std::array<bool, 64>, 32 > display) {
-		// Clear the screen (set to black)
-		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // Black
+	void render_display(SDL_Renderer* renderer, const std::array< std::array<bool, 64>, 32 >& display) {
+		//reset screen
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); //black
 		SDL_RenderClear(renderer);
 
-		// Set draw color to white
-		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // White
+		//set draw col back to white
+		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); //white
 
-		// Loop through each pixel in the display array
+		//loop through each pixel in the display array
 		for (int y = 0; y < 32; y++) {
 			for (int x = 0; x < 64; x++) {
 				if (display[y][x] == 1) {
-					// Draw a rectangle for each pixel (scaled 10x)
+					//draw 10x ractangle for each pixel
 					SDL_FRect pixel = {
-						static_cast<float>(x * 10), // X position
-						static_cast<float>(y * 10), // Y position
-						10.0f,                      // Width
-						10.0f                       // Height
+						static_cast<float>(x * 10), //x pos   * 10 is scale 
+						static_cast<float>(y * 10), //y pos
+						10.0f,                      //width  (scale)
+						10.0f                       //height
 					};
 					SDL_RenderFillRect(renderer, &pixel);
 				}
 			}
 		}
 
-		// Update the screen
+		//update the screen
 		SDL_RenderPresent(renderer);
 	}
 };
@@ -102,7 +100,7 @@ public:
 
 	std::array< std::array<bool, 64>, 32 > display; //monochrome display-- 2048 pixels   64accross 32 down
 
-	// CHIP-8 font set (each character is 5 bytes)
+	//CHIP-8 font set (each character is 5 bytes)
 	std::array<uint8_t, 80> font_set = { {
 		0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
 		0x20, 0x60, 0x20, 0x20, 0x70, // 1
@@ -160,7 +158,7 @@ public:
 		{0xF, false}
 	};
 
-	void clrScreen() {
+	void clrScreen() { //for reseting display array
 		for (int y = 0; y < 32; y++) {
 			for (int x = 0; x < 64; x++) {
 				display[y][x] = 0;
@@ -191,31 +189,31 @@ public:
 
 		std::copy(font_set.begin(), font_set.end(), memory.begin()); //load fontset into memory
 
-		//timers idk
+		//timers 
 		delay_timer = 0;
 		sound_timer = 0;
 	}
 
 	bool load_rom(const char* filename) {
-		// Open the ROM file in binary mode
+		//open ROM file in binary mode
 		std::ifstream file(filename, std::ios::binary | std::ios::ate);
 		if (!file.is_open()) {
 			std::cerr << "Failed to open ROM file: " << filename << "\n";
 			return false;
 		}
 
-		// Get the file size
+		//get file size
 		std::streamsize size = file.tellg();
 		file.seekg(0, std::ios::beg);
 
-		// Check if the ROM fits in memory
+		//check if ROM fits in memory
 		if (size > 0xFFF - 0x200) {
 			std::cerr << "ROM is too large to fit in memory!\n";
 			file.close();
 			return false;
 		}
 
-		// Read the ROM into memory starting at 0x200
+		//read the ROM into memory starting at 0x200
 		file.read(reinterpret_cast<char*>(&memory[0x200]), size);
 		file.close();
 
@@ -223,7 +221,7 @@ public:
 		return true;
 	}
 
-	uint16_t getOpcode(uint16_t pc) {
+	uint16_t getOpcode(uint16_t pc) { //gets opcode at pc position
 
 		uint8_t firstByte = memory[pc];
 		uint8_t secondByte = memory[pc + 1];
@@ -234,6 +232,7 @@ public:
 
 	void mainLoop(uint16_t opc) {
 
+		//break down the opcode
 		uint16_t fstnibble = opc & 0xF000;
 		uint8_t x = (opc & 0x0F00) >> 8;
 		uint8_t y = (opc & 0x00F0) >> 4;
@@ -247,10 +246,10 @@ public:
 
 
 			switch (n) {
-			case 0x0:  //CLR   --   clear screen
+			case 0x0:  //CLR    --    clear screen
 				clrScreen();
 				break;
-			case  0xE:  //RET   --   get back from subroutine aka set progC as what SP points to
+			case  0xE:  //RET    --    get back from subroutine aka set progC as what SP points to
 				progC = stack[--SP];
 				break;
 			}
@@ -259,14 +258,14 @@ public:
 		case 0x1000:  //JUMP   -- set progC to nnn address
 			progC = nnn;
 			break;
-		case 0x2000:  // CALL  -- call subroutine  aka   save current progC to stack and then set progC to nnn
+		case 0x2000:  // CALL  -- call subroutine  aka    save current progC to stack and then set progC to nnn
 			stack[SP++] = progC;
 			progC = nnn;
 			break;
-		case 0x3000: //SE   --  if Vx == kk then progC+=2   (skip next instruction)
+		case 0x3000: //SE    --  if Vx == kk then progC+=2    (skip next instruction)
 			if (V[x] == kk) progC += 2;
 			break;
-		case 0x4000:   //SNE   --  if Vx != kk then progC+=2   (skip next instruction)
+		case 0x4000:   //SNE    --  if Vx != kk then progC+=2    (skip next instruction)
 			if (V[x] != kk) progC += 2;
 			break;
 		case 0x5000:   //SE    -- skip next instr if Vx == Vy
@@ -282,47 +281,47 @@ public:
 
 		case 0x8000:
 			switch (n) {
-			case 0x0:
+			case 0x0:  //LD Vx, Vy    --copy Vy into Vx
 				V[x] = V[y];
 				break;
-			case 0x1:
+			case 0x1: //OR Vx, Vy    -- set Vx to Vx OR Vy
 				V[x] = (V[x] | V[y]);
 				break;
-			case 0x2:
+			case 0x2: //AND Vx, Vy   -- set Vx to Vx AND Vy
 				V[x] = (V[x] & V[y]);
 				break;
-			case 0x3:
+			case 0x3: //XOR Vx, Vy   -- set Vx to Vx XOR Vy
 				V[x] = (V[x] ^ V[y]);
 				break;
-			case 0x4: {
+			case 0x4: { //ADD Vx, Vy   -- set Vx to Vx + Vy, set VF to carry
 				int temp = V[x] + V[y];
 				V[x] += V[y];
 				if (temp > 255) V[0xF] = 1;
 				else V[0xF] = 0;
 				break;
 			}
-			case 0x5: {
+			case 0x5: { //SUB Vx, Vy   -- set Vx to Vx - Vy, set VF to NOT borrow
 				uint8_t saveX = V[x];
 				V[x] -= V[y];
 				if (saveX >= V[y]) V[0xF] = 1;
 				else V[0xF] = 0;
 				break;
 			}
-			case 0x6: {
+			case 0x6: { //SHR Vx {, Vy} -- right shift Vx by 1
 				if (shiftThingy == false) V[x] = V[y];
 				uint8_t saveX = V[x];
 				V[x] = saveX >> 1;
 				V[0xF] = saveX & 0x1;
 				break;
 			}
-			case 0x7: {
+			case 0x7: { //SUBN Vx, Vy  -- set Vx to Vy - Vx, set VF to NOT borrow
 				uint8_t saveX = V[x];
 				V[x] = V[y] - V[x];
 				if (saveX <= V[y]) V[0xF] = 1;
 				else V[0xF] = 0;
 				break;
 			}
-			case 0xE: {
+			case 0xE: { //SHL Vx {, Vy} -- left shift Vx by 1
 				if (shiftThingy == false) V[x] = V[y];
 				uint8_t saveX = V[x];
 				V[x] = saveX << 1;
@@ -332,23 +331,23 @@ public:
 			}
 			break;
 
-		case 0x9000:   //SE    -- skip next instr if Vx != Vy
+		case 0x9000:   //SNE    -- skip next instr if Vx != Vy
 			if (V[x] != V[y]) progC += 2;
 			break;
 		case 0xA000: //LD I nnn    -- set I to nnn
 			I = nnn;
 			break;
-		case 0xB000:
+		case 0xB000: //JP V0, addr  -- jump to location nnn + V0
 			progC = nnn + V[0];
 			break;
-		case 0xC000: {
-			std::random_device rd;  // Obtain a random seed from the OS
-			std::mt19937 gen(rd()); // Standard mersenne_twister_engine seeded with rd()
-			std::uniform_int_distribution<short> distrib(0, 255); // Range 0 to 255 (inclusive)
+		case 0xC000: { //RND Vx, byte -- set Vx to a random byte AND kk
+			std::random_device rd;  //obtain random seed from the OS
+			std::mt19937 gen(rd()); //standard mersenne_twister_engine seeded with rd()
+			std::uniform_int_distribution<short> distrib(0, 255); //range  (inclusive)
 			V[x] = distrib(gen) & kk;
 			break;
 		}
-		case 0xD000: { //DRW Vx Vy n    -- draw sprite at Vx Vy with height n
+		case 0xD000: { //DRW Vx Vy n   -- draw sprite at Vx Vy with height n
 
 			uint8_t dx = V[x];
 			uint8_t dy = V[y];
@@ -356,7 +355,7 @@ public:
 
 			for (uint16_t row = 0x00; row < n; row++) {
 
-				uint8_t sprRow = memory[I + row];  //aka sprite byte
+				uint8_t sprRow = memory[I + row];
 
 				for (int t = 0; t < 8; t++) {
 					if ((sprRow & (0x80 >> t)) != 0) {
@@ -374,20 +373,20 @@ public:
 		}
 		case 0xE000:
 			switch (kk) {
-			case 0x9E:
+			case 0x9E: //SKP Vx -- skip next instruction if key in Vx is pressed
 				if (nativeBool[V[x]] == true) progC += 2;
 				break;
-			case 0xA1:
+			case 0xA1: //SKNP Vx -- skip next instruction if key in Vx is not pressed
 				if (nativeBool[V[x]] == false) progC += 2;
 				break;
 				break;
 			}
 		case 0xF000:
 			switch (kk) {
-			case 0x07:
+			case 0x07: //LD Vx, DT -- set Vx to the delay timer value
 				V[x] = delay_timer;
 				break;
-			case 0x0A: {
+			case 0x0A: { //LD Vx, K -- wait for a key press and store it in Vx
 				bool waitKey = true;
 				SDL_Event event;
 				while (waitKey) {
@@ -426,22 +425,22 @@ public:
 				*/
 				break;
 			}
-			case 0x15:
+			case 0x15: //LD DT, Vx -- set delay timer to Vx
 				delay_timer = V[x];
 				break;
-			case 0x18:
+			case 0x18: //LD ST, Vx -- set sound timer to Vx
 				sound_timer = V[x];
 				break;
 
-			case 0x1E:
+			case 0x1E: //ADD I, Vx -- add Vx to I
 				I += V[x];
 				break;
-			case 0x29:
+			case 0x29: //LD F, Vx -- set I to the location of the sprite for the character in Vx
 				std::array<uint8_t, 16> fontNumbers;
 				for (uint8_t t = 0; t <= 0xF; ++t) fontNumbers[t] = t * 5;
 				I = fontNumbers[V[x]];
 				break;
-			case 0x33: {
+			case 0x33: { //LD B, Vx -- store BCD representation of Vx in memory at I, I+1, I+2
 				int idk = V[x];
 				int mod = static_cast<int>(div(idk, 100).quot);
 				memory[I] = mod;
@@ -454,13 +453,13 @@ public:
 				memory[I + 2] = idk;
 				break;
 			}
-			case 0x55: {
+			case 0x55: { //LD [I], Vx -- store V0 to Vx in memory starting at I
 				for (int idk = 0; idk <= x; idk += 1) {
 					memory[I + idk] = V[idk];
 				}
 				break;
 			}
-			case 0x65:
+			case 0x65: //LD Vx, [I] -- read V0 to Vx from memory starting at I
 
 				for (int idk = 0; idk <= x; idk += 1) {
 					V[idk] = memory[I + idk];
@@ -489,15 +488,15 @@ int main() {
 	bool running = true;
 	SDL_Event event;
 
-	const int cyclesPerSecond = 600; // Target cycles per second
-	const int framesPerSecond = 60;  // Target frames per second
-	const int cyclesPerFrame = cyclesPerSecond / framesPerSecond; // Cycles per frame
+	const int cyclesPerSecond = 600; //target cycles per second
+	const int framesPerSecond = 60;  //target frames per second
+	const int cyclesPerFrame = cyclesPerSecond / framesPerSecond; //cycles per frame
 
 	uint32_t startTime = SDL_GetTicks();
 	int cycleCount = 0;
 
 	while (running) {
-		// Handle events (e.g., close window)
+		// Handle SDL events
 		while (SDL_PollEvent(&event)) {
 			if (event.type == SDL_EVENT_QUIT) {
 				running = false;
@@ -518,22 +517,25 @@ int main() {
 			}
 		}
 
-		// Execute cycles
+		//execute cycles
 		for (int i = 0; i < cyclesPerFrame; ++i) {
 			chip8.opcode = chip8.getOpcode(chip8.progC);
 			chip8.mainLoop(chip8.opcode);
 
-			uint16_t countCheck = chip8.opcode & 0xF000;
+			uint16_t countCheck = chip8.opcode & 0xF000; //jump can be done manually
 			if (countCheck != 0x1000 && countCheck != 0x2000 && countCheck != 0xB000) {
-				chip8.progC += 2; // Move to the next opcode
+				chip8.progC += 2; //has to move 2 to next opcode
 			}
 		}
+
+		//timers
 		if (chip8.delay_timer > 0) chip8.delay_timer--;
 		if (chip8.sound_timer > 0) chip8.sound_timer--;
-		// Render the display
+
+		//render display
 		mainWindow.render_display(mainWindow.renderer, chip8.display);
 
-		// Frame rate control
+		//frame rate control
 		uint32_t frameTime = SDL_GetTicks() - startTime;
 		if (frameTime < 1000 / framesPerSecond) {
 			SDL_Delay((1000 / framesPerSecond) - frameTime);
@@ -541,7 +543,7 @@ int main() {
 		startTime = SDL_GetTicks();
 	}
 
-	// Clean up
+	//clean up
 	SDL_DestroyRenderer(mainWindow.renderer);
 	SDL_DestroyWindow(mainWindow.window);
 	SDL_Quit();
