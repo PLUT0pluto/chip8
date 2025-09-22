@@ -1,7 +1,7 @@
 # chip8
 
 A compact **CHIP‑8 emulator** written in C++ with an SDL3 rendering. This repository contains the emulator source and a TETRIS rom.
-<img width="628" height="318" alt="Screenshot 2025-09-22 144324" src="https://github.com/user-attachments/assets/cbdda4b2-01c7-4e97-a900-2d92abb0bed9" />
+<img width="628" height="318" alt="Screenshot 2025-09-22 144324" src="https://github.com/user-attachments/assets/6d12aa51-c8e4-4798-bec0-3cedd6d731f5" />
 
 ---
 
